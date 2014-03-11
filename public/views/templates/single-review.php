@@ -1,3 +1,11 @@
+<?php
+/**
+ * The Template for displaying all single posts
+ *
+ * @package WordPress
+ * @subpackage Twenty_Fourteen
+ * @since Twenty Fourteen 1.0
+ */
 get_header(); ?>
 
 	<div id="primary" class="content-area">
@@ -11,8 +19,8 @@ get_header(); ?>
 					 * use this in a child theme, then include a file called called content-___.php
 					 * (where ___ is the post format) and that will be used instead.
 					 */
-					the_title();
-					the_content();
+					get_template_part( 'content', get_post_format() );
+					awp_get_template_part('layout', 'review-form');
 
 					// If comments are open or we have at least one comment, load up the comment template.
 					if ( comments_open() || get_comments_number() ) {

@@ -65,3 +65,7 @@ if ( is_admin() && ( ! defined( 'DOING_AJAX' ) || ! DOING_AJAX ) ) {
 	add_action( 'plugins_loaded', array( 'AWP_Reviews_Admin', 'get_instance' ) );
 
 }
+
+function AWP() {
+	return AWP_Reviews::get_instance();
+}

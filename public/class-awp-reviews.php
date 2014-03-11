@@ -76,6 +76,8 @@ class AWP_Reviews {
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_styles' ) );
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
 
+		add_action( 'wp_ajax_nopriv_reviewable_plugins', array($this, 'core_plugin_query' ) );
+
 		/* Define custom functionality.
 		 * Refer To http://codex.wordpress.org/Plugin_API#Hooks.2C_Actions_and_Filters
 		 */
@@ -268,7 +270,10 @@ class AWP_Reviews {
 	 * @since    1.0.0
 	 */
 	public function enqueue_styles() {
-		wp_enqueue_style( $this->plugin_slug . '-plugin-styles', plugins_url( 'assets/css/public.css', __FILE__ ), array(), self::VERSION );
+		if( $this->is_review() ){
+			wp_enqueue_style( $this->plugin_slug . '-plugin-styles', plugins_url( 'assets/css/public.css', __FILE__ ), array(), self::VERSION );
+			wp_enqueue_style( 'select2', '//cdnjs.cloudflare.com/ajax/libs/select2/3.4.5/select2.min.css', array(), '3.4.5');
+		}
 	}
 
 	/**
@@ -277,7 +282,13 @@ class AWP_Reviews {
 	 * @since    1.0.0
 	 */
 	public function enqueue_scripts() {
-		wp_enqueue_script( $this->plugin_slug . '-plugin-script', plugins_url( 'assets/js/public.js', __FILE__ ), array( 'jquery' ), self::VERSION );
+		if( $this->is_review() ){
+			wp_enqueue_script( $this->plugin_slug . '-plugin-script', plugins_url( 'assets/js/public.js', __FILE__ ), array( 'jquery' ), self::VERSION );
+			wp_localize_script( $this->plugin_slug . '-plugin-script', 'ajax_object',
+            	array( 'ajaxurl' => admin_url( 'admin-ajax.php' ) ) );
+
+			wp_enqueue_script( 'select2', '//cdnjs.cloudflare.com/ajax/libs/select2/3.4.5/select2.min.js', array('jquery'), '3.4.5', true );
+		}
 	}
 
 	/**
@@ -304,6 +315,14 @@ class AWP_Reviews {
 	 */
 	public function filter_method_name() {
 		// @TODO: Define your filter hook callback here
+	}
+
+	public function template_path(){
+		return trailingslashit($this->plugin_slug);
+	}
+
+	public function plugin_path() {
+		return untrailingslashit( plugin_dir_path( __FILE__ ) );
 	}
 
 	/**
@@ -354,6 +373,13 @@ class AWP_Reviews {
 		}
 
 		return $template;
+	}
+
+	public function is_review(){
+		if( ( is_single() && get_post_type() == 'review' ) ||
+			( is_tax( 'review_cat' ) || is_tax( 'review_tag' ) ) ||
+			( is_post_type_archive( 'review' ) )
+		  ) return true;
 	}
 
 
@@ -443,4 +469,60 @@ class AWP_Reviews {
 		return false;
 	}
 
+	public function core_plugin_query(){
+		require_once(ABSPATH . 'wp-admin/includes/plugin-install.php');
+		$paged 		= $_REQUEST[ 'page' ];
+
+		$per_page 	= 5;
+		$search 	= $_REQUEST[ 'search' ];
+
+		$args = array( 'page' => $paged, 'per_page' => $per_page, 'search' => $search );
+		
+
+		$api = plugins_api( 'query_plugins', $args );
+
+		$response = $api;
+
+		if ( is_wp_error( $response ) )
+			$response = $api->get_error_message();
+
+		echo json_encode($response);die;
+
+	}
 }
+
+
+/**
+ * Get template part (for templates like the shop-loop).
+ *
+ * @access public
+ * @param mixed $slug
+ * @param string $name (default: '')
+ * @return void
+ */
+function awp_get_template_part( $slug, $name = '' ) {
+	$template = '';
+
+	// Look in yourtheme/slug-name.php
+	if ( $name ) {
+		$template = locate_template( array( "{$slug}-{$name}.php", AWP()->template_path() . "{$slug}-{$name}.php" ) );
+	}
+
+	// Get default slug-name.php
+	if ( ! $template && $name && file_exists( AWP()->plugin_path() . "/views/templates/{$slug}-{$name}.php" ) ) {
+		$template = AWP()->plugin_path() . "/views/templates/{$slug}-{$name}.php";
+	}
+
+	// If template file doesn't exist, look in yourtheme/slug.php and yourtheme/woocommerce/slug.php
+	if ( ! $template ) {
+		$template = locate_template( array( "{$slug}.php", AWP()->template_path() . "{$slug}.php" ) );
+	}
+
+	// Allow 3rd party plugin filter template file from their plugin
+	$template = apply_filters( 'awp_get_template_part', $template, $slug, $name );
+
+	if ( $template ) {
+		load_template( $template, false );
+	}
+}
+
