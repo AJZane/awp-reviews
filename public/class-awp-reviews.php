@@ -358,7 +358,7 @@ class AWP_Reviews {
 	}
 
 
-	private function register_post_type(){
+	public function register_post_type(){
 
 		$labels = $this->post_type_labels( 'review' );
 	    $args = array(
@@ -369,7 +369,7 @@ class AWP_Reviews {
 	}
 
 	public function post_type_labels( $label="" ){
-		$plural = ucwords( pluralize($label) );
+		$plural = ucwords( $this->pluralize($label) );
 		$single = ucwords($label);
 		$labels = array(
 		'name' => $plural,
