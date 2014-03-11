@@ -348,10 +348,9 @@ class AWP_Reviews {
 		}
 
 		if ( $file ) {
-			$template       = locate_template( $find );
-			$status_options = get_option( 'woocommerce_status_options', array() );
-			if ( ! $template || ( ! empty( $status_options['template_debug_mode'] ) && current_user_can( 'manage_options' ) ) )
-				$template = untrailingslashit( plugin_dir_path( __FILE__ ) ) . '/templates/' . $file;
+			$template = locate_template( $find );
+			if ( ! $template )
+				$template = untrailingslashit( plugin_dir_path( __FILE__ ) ) . '/views/templates/' . $file;
 		}
 
 		return $template;
