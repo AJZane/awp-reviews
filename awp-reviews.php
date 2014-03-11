@@ -8,7 +8,7 @@
  * @copyright 2014 Your Name or Company Name
  *
  * @wordpress-plugin
- * AWP Reviews: AWP Plugin and Theme Reviews
+ * Plugin Name: AWP Plugin and Theme Reviews
  * Plugin URI: https://github.com/AJZane/awp-reviews
  * Description: A plugin and theme review plugin for the Advanced WordPress group
  * Version: 0.1

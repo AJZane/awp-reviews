@@ -67,6 +67,8 @@ class AWP_Reviews {
 		add_action( 'init', array( $this, 'load_plugin_textdomain' ) );
 		add_action( 'init', array( $this, 'register_post_type') );
 
+		add_filter( 'template_include', array( $this, 'template_loader' ) );
+
 		// Activate plugin when new blog is added
 		add_action( 'wpmu_new_blog', array( $this, 'activate_new_site' ) );
 
@@ -303,6 +305,58 @@ class AWP_Reviews {
 	public function filter_method_name() {
 		// @TODO: Define your filter hook callback here
 	}
+
+	/**
+	 * Load a template.
+	 *
+	 * Handles template usage so that we can use our own templates instead of the themes.
+	 *
+	 * Templates are in the 'templates' folder. We look for theme
+	 * overrides in /theme/ by default
+	 *
+	 *
+	 * @param mixed $template
+	 * @return string
+	 */
+	public function template_loader( $template ) {
+		$find = array( '' );
+		$file = '';
+		$template_path = trailingslashit($this->plugin_slug);
+
+		if ( is_single() && get_post_type() == 'review' ) {
+
+			$file 	= 'single-review.php';
+			$find[] = $file;
+			$find[] = $template_path . $file;
+
+		} elseif ( is_tax( 'review_cat' ) || is_tax( 'review_tag' ) ) {
+
+			$term = get_queried_object();
+
+			$file 		= 'taxonomy-' . $term->taxonomy . '.php';
+			$find[] 	= 'taxonomy-' . $term->taxonomy . '-' . $term->slug . '.php';
+			$find[] 	= $template_path . 'taxonomy-' . $term->taxonomy . '-' . $term->slug . '.php';
+			$find[] 	= $file;
+			$find[] 	= $template_path . $file;
+
+		} elseif ( is_post_type_archive( 'review' ) ) {
+
+			$file 	= 'archive-review.php';
+			$find[] = $file;
+			$find[] = $template_path . $file;
+
+		}
+
+		if ( $file ) {
+			$template       = locate_template( $find );
+			$status_options = get_option( 'woocommerce_status_options', array() );
+			if ( ! $template || ( ! empty( $status_options['template_debug_mode'] ) && current_user_can( 'manage_options' ) ) )
+				$template = untrailingslashit( plugin_dir_path( __FILE__ ) ) . '/templates/' . $file;
+		}
+
+		return $template;
+	}
+
 
 	private function register_post_type(){
 
