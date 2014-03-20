@@ -68,6 +68,9 @@ class AWP_Reviews_Admin {
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_styles' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_scripts' ) );
 
+		add_action( 'load-post.php', array($this, 'meta_boxes_setup' ) );
+		add_action( 'load-post-new.php', array($this, 'meta_boxes_setup' ) );
+
 		// Add the options page and menu item.
 		add_action( 'admin_menu', array( $this, 'add_plugin_admin_menu' ) );
 
@@ -190,6 +193,36 @@ class AWP_Reviews_Admin {
 	 */
 	public function display_plugin_admin_page() {
 		include_once( 'views/admin.php' );
+	}
+
+	public function meta_boxes_setup() {
+		/* Add meta boxes on the 'add_meta_boxes' hook. */
+		add_action( 'add_meta_boxes', array( $this, 'meta_boxes' ) );
+
+		/* Save post meta on the 'save_post' hook. */
+		add_action( 'save_post', array( $this, 'save_post_meta' ), 10, 2 );
+	}
+
+	public function meta_boxes() {
+		add_meta_box(
+			'awp-review-rating',				// Unique ID
+			'AWP Rating',						// Title
+			'awp_review_rating_meta_box',		// Callback function
+			'review',						// Admin page (or post type)
+			'side',								// Context
+			'default'							// Priority
+		);
+	}
+
+	/* Save the meta box's post metadata. */
+	public function save_post_meta( $post_id, $post ) {
+
+		/* Verify the nonce before proceeding. */
+		if ( !isset( $_POST['awp_reviews_nonce'] ) || !wp_verify_nonce( $_POST['awp_reviews_nonce'], basename( __FILE__ ) ) )
+			return $post_id;
+
+		# TODO: write the save post functionality.
+
 	}
 
 	/**
