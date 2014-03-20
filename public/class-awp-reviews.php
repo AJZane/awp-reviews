@@ -342,9 +342,9 @@ class AWP_Reviews {
 		$file = '';
 		$template_path = trailingslashit($this->plugin_slug);
 
-		if ( is_single() && get_post_type() == 'review' ) {
+		if ( is_single() && get_post_type() == 'reviews' ) {
 
-			$file 	= 'single-review.php';
+			$file 	= 'single-reviews.php';
 			$find[] = $file;
 			$find[] = $template_path . $file;
 
@@ -360,7 +360,7 @@ class AWP_Reviews {
 
 		} elseif ( is_post_type_archive( 'review' ) ) {
 
-			$file 	= 'archive-review.php';
+			$file 	= 'archive-reviews.php';
 			$find[] = $file;
 			$find[] = $template_path . $file;
 
@@ -376,24 +376,31 @@ class AWP_Reviews {
 	}
 
 	public function is_review(){
-		if( ( is_single() && get_post_type() == 'review' ) ||
+		if( ( is_single() && get_post_type() == 'reviews' ) ||
 			( is_tax( 'review_cat' ) || is_tax( 'review_tag' ) ) ||
-			( is_post_type_archive( 'review' ) )
+			( is_post_type_archive( 'reviews' ) )
 		  ) return true;
 	}
 
 
 	public function register_post_type(){
 
-		$labels = $this->post_type_labels( 'review' );
+		$labels = $this->post_type_labels( 'awp plugin' );
 	    $args = array(
 	      'public' => true,
-	      'labels'  => $labels
+	      'labels'  => $labels,
+	      'supports' => array('thumbnail','comments','page-attributes')
 	    );
-	    register_post_type( 'review', $args );
+	    register_post_type( 'reviews', $args );
 	}
 
 	public function post_type_labels( $label="" ){
+		
+		if( is_array( $label ) ){
+			$plural = $label['pluralize'];
+		}
+
+
 		$plural = ucwords( $this->pluralize($label) );
 		$single = ucwords($label);
 		$labels = array(
@@ -477,7 +484,6 @@ class AWP_Reviews {
 		$search 	= $_REQUEST[ 'search' ];
 
 		$args = array( 'page' => $paged, 'per_page' => $per_page, 'search' => $search );
-		
 
 		$api = plugins_api( 'query_plugins', $args );
 
@@ -486,7 +492,7 @@ class AWP_Reviews {
 		if ( is_wp_error( $response ) )
 			$response = $api->get_error_message();
 
-		echo json_encode($response);die;
+		echo json_encode($response); die;
 
 	}
 }

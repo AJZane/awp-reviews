@@ -208,7 +208,7 @@ class AWP_Reviews_Admin {
 			'awp-review-rating',				// Unique ID
 			'AWP Rating',						// Title
 			'awp_review_rating_meta_box',		// Callback function
-			'awp-reviews',						// Admin page (or post type)
+			'review',						// Admin page (or post type)
 			'side',								// Context
 			'default'							// Priority
 		);
